@@ -1,4 +1,5 @@
 rm(list = ls())
+#setwd("~/Development/CSC_AT_LVC/DSC_340_Machine_learn/DSC_Project_1") # For Brian's mac
 load("classroom6.RData")
 
 data = classroom6
@@ -16,6 +17,24 @@ data$sex <- factor(data$sex,
 data$minority <- factor(data$minority, 
                         levels = c(0, 1), 
                         labels = c("N", "Y"))
+
+
+
+# Find the 33rd and 66th percentiles for teacher experience
+cuts <- quantile(data$yearstea, probs = c(0.33, 0.66), na.rm = TRUE)
+
+# Create the new factor
+data <- data %>%
+    mutate(tea_level = case_when(
+        yearstea <= cuts[1] ~ "Low",
+        yearstea > cuts[1] & yearstea <= cuts[2] ~ "Med",
+        yearstea > cuts[2] ~ "Hih"
+    )) %>%
+    mutate(tea_level = factor(tea_level, levels = c("Low", "Med", "Hih")))
+
+# 3. Check the split
+table(data$tea_level)
+
 
 # ---------------------------------------------------Analysis Tables--------------------------------------------------------------------------
 
@@ -42,21 +61,25 @@ print(kable(analysis_table_lvl_1,
 
 # analyze all data
 analysis_table_lvl_2 <- data %>%
-    summarise(
-        N_Obs = n(),
-        mean_mathkind = mean(mathkind, na.rm = TRUE),
-        sd_mathkind = sd(mathkind, na.rm = TRUE),
+    group_by(classid) %>%
+    summarize(
+        yearstea = first(yearstea),
+        mathprep = first(mathprep)
+    ) %>%
+    summarize(
+        n_classes = n(),
         mean_yearstea = mean(yearstea, na.rm = TRUE),
-        sd_yearstea = sd(yearstea, na.rm = TRUE)
+        sd_yearstea = sd(yearstea, na.rm = TRUE),
+        mean_mathprep = mean(mathprep, na.rm = TRUE),
+        sd_mathprep = sd(mathprep, na.rm = TRUE)
     )
 
 print(kable(analysis_table_lvl_2, 
-            col.names = c("N",
+            col.names = c("N (Classes)",
                           "mean_yearstea", "sd_yearstea", 
                           "mean_mathprep", "sd_mathprep"), 
             digits = 2, 
-            caption = "          Analysis Variable : LVL 2 factors\n----------------------------------------------------------------"))
-
+            caption = "         Analysis Variable : LVL 2 factors (Classroom Level)\n----------------------------------------------------------------"))
 
 
 # Analyze by sex
@@ -74,7 +97,7 @@ analysis_table_sex <- data %>%
 print(kable(analysis_table_sex, 
             col.names = c("Sex", "N",  "mean", "std_dev", "minimum", "maximum"),
             digits = 2, 
-            caption = "             Analysis Variable : MathGain\n----------------------------------------------------------------"))
+            caption = "     Analysis Variable : MathGain\n------------------------------------------------"))
 
 # Analyze by minority
 analysis_table_minor <- data %>%
@@ -91,7 +114,7 @@ analysis_table_minor <- data %>%
 print(kable(analysis_table_minor, 
             col.names = c("Minority", "N",  "mean", "std_dev", "minimum", "maximum"),
             digits = 2, 
-            caption = "             Analysis Variable : MathGain\n----------------------------------------------------------------"))
+            caption = "      Analysis Variable : MathGain\n--------------------------------------------------"))
 
 # Cross Minority * Sex
 analysis_table_crossed <- data %>%
@@ -109,7 +132,26 @@ analysis_table_crossed <- data %>%
 print(kable(analysis_table_crossed, 
             col.names = c("Minority", "Sex", "N",  "mean", "std_dev", "minimum", "maximum"),
             digits = 2, 
-            caption = "             Analysis Variable : MathGain\n----------------------------------------------------------------"))
+            caption = "          Analysis Variable : MathGain\n----------------------------------------------------------"))
+
+
+# Analyze by class
+class_data <- data %>%
+    group_by(classid) %>%
+    summarize(
+        n_students = n(),
+        years_tea = first(yearstea),
+        prep = first(mathprep)
+    ) %>%
+    ungroup()
+
+halfway <- nrow(class_data) / 2
+left_side <- class_data[1:halfway, ]
+right_side <- class_data[(halfway + 1):nrow(class_data), ]
+
+square_table <- bind_cols(left_side, ` ` = "|", right_side)
+
+print(square_table)
 
 
 # ---------------------------------------------------BW plots----------------------------------------------------------------------------
@@ -119,7 +161,7 @@ print(kable(analysis_table_crossed,
 bwplot(mathgain ~ sex, 
        data = data,
        layout = c(1, 1), 
-       main = "Figure 3.1 with Pronounced Median Lines",
+       main = "MathGain by Sex Boxplot",
        xlab = "Sex", 
        ylab = "MathGain",
        panel = function(x, y, ...) {
@@ -141,7 +183,7 @@ bwplot(mathgain ~ sex,
 bwplot(mathgain ~ minority, 
        data = data,
        layout = c(1, 1), 
-       main = "Figure 3.1 with Pronounced Median Lines",
+       main = "MathGain by Minority Boxplots",
        xlab = "Minority", 
        ylab = "MathGain",
        panel = function(x, y, ...) {
@@ -162,7 +204,7 @@ bwplot(mathgain ~ minority,
 bwplot(mathgain ~ minority | sex, 
        data = data,
        layout = c(2, 1), 
-       main = "Figure 3.1 with Pronounced Median Lines",
+       main = "MathGain by Sex * Minority Boxplots",
        xlab = "Minority", 
        ylab = "MathGain",
        panel = function(x, y, ...) {
@@ -241,7 +283,7 @@ ggplot(data, aes(x = mathkind, y = mathgain, color = minority)) +
     geom_point(alpha = 0.6) + 
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_smooth(method = "lm", se = FALSE) + 
-    labs(title = "Math Gain by SES and Minority",
+    labs(title = "Math Gain by 2022 Score and Minority",
          x = "Math Score (2022)",
          y = "Gain in Math Score",
          color = "Student Minority") +
@@ -283,14 +325,27 @@ ggplot(data, aes(x = ses, y = mathgain, color = minority)) +
          color = "Student Minority") +
     theme_minimal()
 
-# ------------------ YearStea -----------------------
+
+# Colored by tea_level level
+ggplot(data, aes(x = ses, y = mathgain, color = tea_level)) +
+    geom_point(alpha = 0.6) + 
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    geom_smooth(method = "lm", se = FALSE) + 
+    labs(title = "Math Gain by SES by YearsTea",
+         x = "SES",
+         y = "Gain in Math Score",
+         color = "YearsTea Level") +
+    theme_minimal()
+
+
+# ------------------ YearsTea -----------------------
 
 # MathGain ~ YearStea
 ggplot(data, aes(x = yearstea, y = mathgain, color = classid)) +
     geom_point(alpha = 0.5) + 
     geom_smooth(method = "lm", col = "red") +       
-    labs(title = "Relationship between YearStea and Math Gain",
-         x = "SES",
+    labs(title = "Relationship between YearsTea and Math Gain",
+         x = "YearsTea",
          y = "Gain in Math Score") +
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     theme_minimal()
@@ -301,8 +356,8 @@ ggplot(data, aes(x = yearstea, y = mathgain, color = sex)) +
     geom_point(alpha = 0.6) + 
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_smooth(method = "lm", se = FALSE) + 
-    labs(title = "Math Gain by YearStea and Sex",
-         x = "YearStea",
+    labs(title = "Math Gain by YearsTea and Sex",
+         x = "YearsTea",
          y = "Gain in Math Score",
          color = "Student Sex") +
     theme_minimal()
@@ -312,10 +367,21 @@ ggplot(data, aes(x = yearstea, y = mathgain, color = minority)) +
     geom_point(alpha = 0.6) + 
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_smooth(method = "lm", se = FALSE) + 
-    labs(title = "Math Gain by YearStea and Minority",
-         x = "YearStea",
+    labs(title = "Math Gain by YearsTea and Minority",
+         x = "YearsTea",
          y = "Gain in Math Score",
          color = "Student Minority") +
+    theme_minimal()
+
+# Colored by tea_level level
+ggplot(data, aes(x = yearstea, y = mathgain, color = tea_level)) +
+    geom_point(alpha = 0.6) + 
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    geom_smooth(method = "lm", se = FALSE) + 
+    labs(title = "Math Gain by YearsTea Level",
+         x = "YearsTea",
+         y = "Gain in Math Score",
+         color = "YearsTea Level") +
     theme_minimal()
 
 # ------------------ MathPrep -----------------------
@@ -347,9 +413,20 @@ ggplot(data, aes(x = mathprep, y = mathgain, color = minority)) +
     geom_point(alpha = 0.6) + 
     geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
     geom_smooth(method = "lm", se = FALSE) + 
-    labs(title = "Math Gain by SES and Minority",
+    labs(title = "Math Gain by MathPrep and Minority",
          x = "MathPrep",
          y = "Gain in Math Score",
          color = "Student Minority") +
+    theme_minimal()
+
+# Colored by YearsTea level
+ggplot(data, aes(x = mathprep, y = mathgain, color = tea_level)) +
+    geom_point(alpha = 0.6) + 
+    geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+    geom_smooth(method = "lm", se = FALSE) + 
+    labs(title = "Math Gain by MathPrep and YearsTea Level",
+         x = "MathPrep",
+         y = "Gain in Math Score",
+         color = "YearsTea level") +
     theme_minimal()
 
