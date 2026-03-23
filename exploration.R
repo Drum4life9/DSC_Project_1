@@ -352,4 +352,3 @@ ggplot(data, aes(x = mathprep, y = mathgain, color = minority)) +
          y = "Gain in Math Score",
          color = "Student Minority") +
     theme_minimal()
-
