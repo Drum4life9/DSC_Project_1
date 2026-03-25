@@ -1,15 +1,15 @@
 rm(list = ls())
-#setwd("~/Development/CSC_AT_LVC/DSC_340_Machine_learn/DSC_Project_1") # For Brian's mac
+setwd("~/Development/CSC_AT_LVC/DSC_340_Machine_learn/DSC_Project_1") # For Brian's mac
 load("classroom6.RData")
 
 data = classroom6
 
 library(nlme)
-
 library(dplyr)
 library(knitr)
 library(ggplot2)
 library(lattice)
+library(effects)
 
 
 # Make factors easier to understand
@@ -513,3 +513,31 @@ model.4.fit <- lme(mathgain ~ mathkind + yearstea + (sex:yearstea) + (sex:minori
 anova(model.3b.fit, model.4.fit) # Test Hypothesis 10 
 # Keeping M4
 
+
+model.4.ml.fit <- lme(mathgain ~ mathkind + yearstea + (sex:yearstea) + (sex:minority),
+                   random = ~ 1|classid, 
+                   data = data, method = "ML", 
+                   weights = varComb(varIdent(form = ~1 | sex), 
+                                     varIdent(form = ~1 | tea_level)))
+
+model.5.ml.fit <- lme(mathgain ~ mathkind + mathprep + yearstea + (sex:yearstea) + (sex:minority),
+                   random = ~ mathkind|classid, 
+                   data = data, method = "ML", 
+                   weights = varComb(varIdent(form = ~1 | sex), 
+                                     varIdent(form = ~1 | tea_level)))
+summary(model.5.ml.fit)
+anova(model.4.ml.fit, model.5.ml.fit) # Test Hypothesis 11
+
+
+
+
+
+
+
+# Later diagnostic plot material
+
+# This plots the "Pure" effect of SES from your LME model
+plot(effect("ses", model.5.ml.fit), 
+     main="Effect of SES on Math Gain (Controlled)",
+     ylab="Predicted Math Gain",
+     xlab="Socioeconomic Status")
