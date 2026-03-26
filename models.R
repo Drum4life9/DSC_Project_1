@@ -117,3 +117,49 @@ anova(model.5.fit)
 anova(model.4.fit, model.5.fit) # Hypothesis Test 11
 # Keep M5 --> Reject Null Hypothesis
 
+
+# -----------------------------------------------------------------------------------------------------------------------------------------
+# Putting all models into ML to see what drop1 function says
+new.model.1.ml.fit <- lme(mathgain ~ sex + minority + (sex:minority) + mathkind + yearstea + (sex:yearstea) + (mathkind:minority) + ses,
+                      random = ~ mathkind|classid,
+                      data = data, method = "ML")
+drop1(new.model.1.ml.fit, test = "Chisq")
+new.model.2.ml.fit <- lme(mathgain ~ sex + minority + (sex:minority) + mathkind + yearstea + (sex:yearstea) + (mathkind:minority) + ses,
+                          random = ~ mathkind|classid, 
+                          data = data, method = "ML", 
+                          weights = varIdent(form = ~1 | tea_level))
+drop1(new.model.2.ml.fit, test = "Chisq")
+# Model 3 Drops sex
+new.model.3.ml.fit <- lme(mathgain ~ minority + (sex:minority) + mathkind + yearstea + (sex:yearstea) + (mathkind:minority) + ses,
+                          random = ~ mathkind|classid, 
+                          data = data, method = "ML", 
+                          weights = varIdent(form = ~1 | tea_level))
+drop1(new.model.3.ml.fit, test = "Chisq")
+# Model 4 Drops minority and mathkind:minority and sex:yearstea
+new.model.4.ml.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:minority) + ses,
+                          random = ~ mathkind|classid, 
+                          data = data, method = "ML", 
+                          weights = varIdent(form = ~1 | tea_level))
+drop1(new.model.4.ml.fit, test = "Chisq")
+# Model 5 Drops yearstea
+new.model.5.ml.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
+                          random = ~ mathkind|classid, 
+                          data = data, method = "ML", 
+                          weights = varIdent(form = ~1 | tea_level))
+drop1(new.model.5.ml.fit, test = "Chisq")
+
+new.model.5.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
+                   random = ~ mathkind|classid, 
+                   data = data, method = "REML", 
+                   weights = varComb(varIdent(form = ~1 | sex), 
+                                     varIdent(form = ~1 | tea_level)))
+anova(new.model.5.fit)
+anova(model.5.fit, new.model.5.fit)
+# New Model 5 has a better AIC and BIC
+
+old.model.5.ml.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:minority) + ses,
+                   random = ~ mathkind|classid, 
+                   data = data, method = "ML", 
+                   weights = varComb(varIdent(form = ~1 | sex), 
+                                     varIdent(form = ~1 | tea_level)))
+anova(old.model.5.ml.fit, new.model.5.ml.fit)
