@@ -40,11 +40,16 @@ anova(model.1.fit, model.2b.fit) # Test Hypothesis 3
 # AIC 4 --> Comparing AIC and BIC of M2A and M2B
 anova(model.2a.fit, model.2b.fit) # Test AIC 4
 # Keeping M2A --> AIC and BIC for M2A are lower 
+model.2a.ml.fit <- lme(mathgain ~ sex + minority + (sex:minority) + mathkind + 
+                         yearstea + (sex:yearstea) + (mathkind:minority) + ses,
+                      random = ~ 1|classid, 
+                      data = data, method = "ML", 
+                      weights = varIdent(form = ~1 | tea_level))
 
-# Model 3 Remove sex 
+# Model 3 Removed sex 
 # Hypothesis 5 --> Null Hypothesis: Drop sex (B_sex = 0)
 # Alternative Hypothesis: Keep sex (B_sex != 0)
-anova(model.2a.fit) # Test Hypothesis 5
+drop1(model.2a.ml.fit, test = "Chisq") # Test Hypothesis 5
 # Keeping M3 --> fail to reject Null Hypothesis because p_value > 0.05
 model.3.ml.fit <- lme(mathgain ~ minority + (sex:minority) + mathkind + yearstea + 
                      (sex:yearstea) + (mathkind:minority) + ses,
@@ -56,33 +61,37 @@ model.3.ml.fit <- lme(mathgain ~ minority + (sex:minority) + mathkind + yearstea
 drop1(model.3.ml.fit, test = "Chisq") # Test Hypothesis 6
 # Keeping M3A --> fail to reject Null Hypothesis because p_value > 0.05
 
-# Model 3A Remove minority
-model.3a.ml.fit <- lme(mathgain ~ mathkind + yearstea + (sex:yearstea) + 
+# Model 3A Removed minority and add sex
+model.3a.ml.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:yearstea) + 
                       (sex:minority) + (mathkind:minority) + ses,
                    random = ~ 1|classid, 
                    data = data, method = "ML", 
                    weights = varIdent(form = ~1 | tea_level))
 # Hypothesis 7 --> Null Hypothesis: Drop mathkind:minority (B_mathkind:minority = 0)
 # Alternative Hypothesis: Keep mathkind:minority (B_mathkind:minority != 0)
-drop1(model.3a.ml.fit) # Test Hypothesis 7
+drop1(model.3a.ml.fit, test = "Chisq") # Test Hypothesis 7
 # Keeping M3B --> fail to reject Null Hypothesis because p_value > 0.05
 
 # Model 3B Removed mathkind:minority
-model.3b.ml.fit <- lme(mathgain ~ mathkind + yearstea + (sex:yearstea) + 
+model.3b.ml.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:yearstea) + 
                       (sex:minority) + ses,
                     random = ~ 1|classid, 
                     data = data, method = "ML", 
                     weights = varIdent(form = ~1 | tea_level))
 # Hypothesis 8 --> Null Hypothesis: Drop yearstea:sex (B_yearstea:sex = 0)
 # Alternative Hypothesis: Keep yearstea:sex (B_yearstea:sex != 0)
-drop1(model.3b.ml.fit) # Test Hypothesis 8
+drop1(model.3b.ml.fit, test = "Chisq") # Test Hypothesis 8
 # Keeping M3B --> fail to reject Null Hypothesis because p_value > 0.05
 
-# Model 3C Removed yearstea:sex and add sex
+# Model 3C Removed yearstea:sex
 model.3c.ml.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:minority) + ses,
                     random = ~ 1|classid, 
                     data = data, method = "ML", 
                     weights = varIdent(form = ~1 | tea_level))
+# Hypothesis 9 --> Null Hypothesis: Drop yearstea:sex (B_yearstea = 0)
+# Alternative Hypothesis: Keep yearstea:sex (B_yearstea != 0)
+drop1(model.3c.ml.fit, test = "Chisq") # Test Hypothesis 9
+# Keeping M3C --> fail to reject Null Hypothesis because p_value > 0.05
 
 # Model 3D Removed yearstea
 model.3d.ml.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
@@ -90,10 +99,10 @@ model.3d.ml.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
                     data = data, method = "ML", 
                     weights = varIdent(form = ~1 | tea_level))
 
-# Hypothesis 8 --> Null Hypothesis: Drop any other fixed effects (B_x = 0; x = any fixed effect)
+# Hypothesis 10 --> Null Hypothesis: Drop any other fixed effects (B_x = 0; x = any fixed effect)
 # Alternative Hypothesis: Keep all fixed effects (B_x != 0; x = any fixed effect)
-drop1(model.3d.ml.fit) # Test Hypothesis 8
-# Keeping M3C --> reject Null Hypothesis
+drop1(model.3d.ml.fit, test = "Chisq") # Test Hypothesis 10
+# Keeping M3D --> reject Null Hypothesis
 
 model.2a.ml.fit <- lme(mathgain ~ sex + minority + (sex:minority) + mathkind + 
                          yearstea + (sex:yearstea) + (mathkind:minority) + ses,
@@ -101,78 +110,42 @@ model.2a.ml.fit <- lme(mathgain ~ sex + minority + (sex:minority) + mathkind +
                        data = data, method = "ML", 
                        weights = varIdent(form = ~1 | tea_level))
 
-# Hypothesis 9 --> Null Hypothesis: Drop minority, sex:yearstea, and mathkind:minority
+# Hypothesis 11 --> Null Hypothesis: Drop minority, sex:yearstea, yearstea, and mathkind:minority
 # Alternative Hypothesis: Keep minority, sex:yearstea, and mathkind:minority
-anova(model.2a.ml.fit, model.3d.ml.fit) # Test Hypothesis 9
-# Keeping M3C due to AIC and BIC --> fail to reject Null Hypothesis
+anova(model.2a.ml.fit, model.3d.ml.fit) # Test Hypothesis 11
+# Keeping M3D due to AIC and BIC --> fail to reject Null Hypothesis
+
+model.3d.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
+                       random = ~ 1|classid, 
+                       data = data, method = "REML", 
+                       weights = varIdent(form = ~1 | tea_level))
 
 # Model 4 Adding Heterogeneous Residuals by tea_level and sex
-model.4.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:minority) + ses,
+model.4.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
                        random = ~ 1|classid, 
                        data = data, method = "REML", 
                        weights = varComb(varIdent(form = ~1 | sex), 
                                          varIdent(form = ~1 | tea_level)))
-# Hypothesis 10 --> Null Hypothesis: Homogeneous residual variance (all variances of tea_level and sex groups are the same)
+# Hypothesis 12 --> Null Hypothesis: Homogeneous residual variance (all variances of tea_level and sex groups are the same)
 # Alternative Hypothesis: Heterogeneous residual variance (all variances of tea_level and sex groups are the different)
-anova(model.3c.fit, model.4.fit) # Test Hypothesis 10 
+anova(model.3d.fit, model.4.fit) # Test Hypothesis 12
 # Keeping M4 --> Reject Null Hypothesis
 anova(model.4.fit)
 
 # Add random slope between mathkind and classid
-model.5.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:minority) + ses,
+model.5.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
                    random = ~ mathkind|classid, 
                    data = data, method = "REML", 
                    weights = varComb(varIdent(form = ~1 | sex), 
                                      varIdent(form = ~1 | tea_level)))
 anova(model.5.fit)
-# Hypothesis 11 --> Null Hypothesis: Drop u1j (variance of u1j = 0)
+# Hypothesis 13 --> Null Hypothesis: Drop u1j (variance of u1j = 0)
 # Alternative Hypothesis: Keep u1j (variance of u1j != 0)
-anova(model.4.fit, model.5.fit) # Hypothesis Test 11
+anova(model.4.fit, model.5.fit) # Hypothesis Test 13
 # Keep M5 --> Reject Null Hypothesis
 
-# -----------------------------------------------------------------------------------------------------------------------------------------
-# Putting all models into ML to see what drop1 function says
-new.model.1.ml.fit <- lme(mathgain ~ sex + minority + (sex:minority) + mathkind + yearstea + (sex:yearstea) + (mathkind:minority) + ses,
-                      random = ~ mathkind|classid,
-                      data = data, method = "ML")
-drop1(new.model.1.ml.fit, test = "Chisq")
-new.model.2.ml.fit <- lme(mathgain ~ sex + minority + (sex:minority) + mathkind + yearstea + (sex:yearstea) + (mathkind:minority) + ses,
-                          random = ~ mathkind|classid, 
-                          data = data, method = "ML", 
-                          weights = varIdent(form = ~1 | tea_level))
-drop1(new.model.2.ml.fit, test = "Chisq")
-# Model 3 Drops sex
-new.model.3.ml.fit <- lme(mathgain ~ minority + (sex:minority) + mathkind + yearstea + (sex:yearstea) + (mathkind:minority) + ses,
-                          random = ~ mathkind|classid, 
-                          data = data, method = "ML", 
-                          weights = varIdent(form = ~1 | tea_level))
-drop1(new.model.3.ml.fit, test = "Chisq")
-# Model 4 Drops minority and mathkind:minority and sex:yearstea
-new.model.4.ml.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:minority) + ses,
-                          random = ~ mathkind|classid, 
-                          data = data, method = "ML", 
-                          weights = varIdent(form = ~1 | tea_level))
-drop1(new.model.4.ml.fit, test = "Chisq")
-# Model 5 Drops yearstea
-new.model.5.ml.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
-                          random = ~ mathkind|classid, 
-                          data = data, method = "ML", 
-                          weights = varIdent(form = ~1 | tea_level))
-drop1(new.model.5.ml.fit, test = "Chisq")
-
-new.model.5.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
-                   random = ~ mathkind|classid, 
-                   data = data, method = "REML", 
-                   weights = varComb(varIdent(form = ~1 | sex), 
-                                     varIdent(form = ~1 | tea_level)))
-anova(new.model.5.fit)
-anova(model.5.fit, new.model.5.fit)
-# New Model 5 has a better AIC and BIC
-
-old.model.5.ml.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:minority) + ses,
-                   random = ~ mathkind|classid, 
-                   data = data, method = "ML", 
-                   weights = varComb(varIdent(form = ~1 | sex), 
-                                     varIdent(form = ~1 | tea_level)))
-anova(old.model.5.ml.fit, new.model.5.ml.fit)
-summary(new.model.5.fit)
+final.model.fit <- lme(mathgain ~ sex + mathkind + (sex:minority) + ses,
+                       random = ~ mathkind|classid, 
+                       data = data, method = "REML", 
+                       weights = varComb(varIdent(form = ~1 | sex), 
+                                         varIdent(form = ~1 | tea_level)))
