@@ -1,3 +1,5 @@
+source("b_exploration.R")
+
 # Model 1 Model with Loaded Mean Structure
 model.1.fit <- lme(mathgain ~ sex + minority + (sex:minority) + mathkind + 
                      yearstea + (sex:yearstea) + (mathkind:minority) + ses,
@@ -173,3 +175,4 @@ old.model.5.ml.fit <- lme(mathgain ~ sex + mathkind + yearstea + (sex:minority) 
                    weights = varComb(varIdent(form = ~1 | sex), 
                                      varIdent(form = ~1 | tea_level)))
 anova(old.model.5.ml.fit, new.model.5.ml.fit)
+summary(new.model.5.fit)

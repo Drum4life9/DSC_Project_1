@@ -1,5 +1,5 @@
 source("b_exploration.R")
-source("models.R")
+source("c_models.R")
 
 # Later diagnostic plot material
 
