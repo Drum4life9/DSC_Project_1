@@ -21,7 +21,6 @@ data$minority <- factor(data$minority,
                         labels = c("N", "Y"))
 
 
-
 # Find the 33rd and 66th percentiles for teacher experience
 cuts <- quantile(data$yearstea, probs = c(0.33, 0.66), na.rm = TRUE)
 
