@@ -66,17 +66,17 @@ model.3C.fit <- lme(mathgain ~ sex + minority + (sex:minority) + mathkind +
 # Hypothesis 6 --> Null Hypothesis: Homogeneous residual variance (all variances of tea_level and sex groups are the same)
 # Alternative Hypothesis: Residual variances are not all equal
 anova(model.2B.fit, model.3C.fit)
-# Reject Null Hypothesis --> Keep Model 3B
+# Reject Null Hypothesis --> Keep Model 3C
 
 # Test 7 --> Comparing AIC and BIC of Model 3A and Model 3B
 anova(model.3A.fit, model.3B.fit, model.3C.fit)
 # Keep Model 3C 
 
-# Hypothesis 8 --> Null Hypothesis: Drop minority (B_sex:minority = 0)
-# Alternative Hypothesis: Keep sex (B_minority != 0)
+# Hypothesis 8 --> Null Hypothesis: Drop minority (B_minority = 0)
+# Alternative Hypothesis: Keep Minority (B_minority != 0)
 # Test Hypothesis 8
 anova(model.3C.fit)
-# Fail to reject Null Hypothesis --> Drop B_sex:minority 
+# Fail to reject Null Hypothesis --> Drop B_minority 
 
 # Model 4A Removed minority 
 model.4A.ml.fit <- lme(mathgain ~ sex + (sex:minority) + mathkind + yearstea + 
