@@ -1,5 +1,5 @@
-rm(list = ls())
-setwd("~/Development/CSC_AT_LVC/DSC_340_Machine_learn/DSC_Project_1") # For Brian's mac
+#rm(list = ls())
+#setwd("~/Development/CSC_AT_LVC/DSC_340_Machine_learn/DSC_Project_1") # For Brian's mac
 load("classroom6.RData")
 
 data = classroom6
