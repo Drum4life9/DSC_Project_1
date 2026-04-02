@@ -1,5 +1,5 @@
-#rm(list = ls())
-#setwd("~/Development/CSC_AT_LVC/DSC_340_Machine_learn/DSC_Project_1") # For Brian's mac
+rm(list = ls())
+setwd("~/Development/CSC_AT_LVC/DSC_340_Machine_learn/DSC_Project_1") # For Brian's mac
 load("classroom6.RData")
 
 data = classroom6
@@ -305,12 +305,45 @@ ggplot(data, aes(x = mathkind, y = mathgain, color = minority)) +
     theme_minimal()
 
 
+# MathGain ~ Mathscore
+ggplot(data, aes(x = mathkind, y = mathgain)) +
+  geom_point(alpha = 0.5, color = "steelblue") +
+  
+  # Existing Linear Line (Linear Regression)
+  geom_smooth(method = "lm", color = "red", se = FALSE) + 
+  
+  # Add Smoothing Line (LOESS or GAM)
+  # method = "loess" is great for identifying local patterns
+  geom_smooth(method = "loess", color = "forestgreen", se = FALSE) + 
+  
+  # Add Quadratic Line (Polynomial degree 2)
+  # We use formula = y ~ poly(x, 2) to create the curve
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), color = "purple", se = FALSE) +
+  
+  labs(title = "Relationship between 2022 Math score and Math Gain",
+       subtitle = "Red: Linear | Green: LOESS Smooth | Purple: Quadratic",
+       x = "Math Score (2022)",
+       y = "Gain in Math Score") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  theme_minimal()
+
 # ------------------ SES -----------------------
 
 # MathGain ~ SES
 ggplot(data, aes(x = ses, y = mathgain)) +
   geom_point(alpha = 0.5, color = "steelblue") + 
-  geom_smooth(method = "lm", col = "red") +       
+  
+  # Existing Linear Line (Linear Regression)
+  geom_smooth(method = "lm", color = "red", se = FALSE) + 
+  
+  # Add Smoothing Line (LOESS or GAM)
+  # method = "loess" is great for identifying local patterns
+  geom_smooth(method = "loess", color = "forestgreen", se = FALSE) + 
+  
+  # Add Quadratic Line (Polynomial degree 2)
+  # We use formula = y ~ poly(x, 2) to create the curve
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), color = "purple", se = FALSE) +
+  
   labs(title = "Relationship between SES and Math Gain",
        x = "SES",
        y = "Gain in Math Score") +
@@ -344,7 +377,16 @@ ggplot(data, aes(x = ses, y = mathgain, color = minority)) +
 # MathGain ~ YearStea
 ggplot(data, aes(x = yearstea, y = mathgain, color = classid)) +
     geom_point(alpha = 0.5) + 
-    geom_smooth(method = "lm", col = "red") +       
+  # Existing Linear Line (Linear Regression)
+  geom_smooth(method = "lm", color = "red", se = FALSE) + 
+  
+  # Add Smoothing Line (LOESS or GAM)
+  # method = "loess" is great for identifying local patterns
+  geom_smooth(method = "loess", color = "forestgreen", se = FALSE) + 
+  
+  # Add Quadratic Line (Polynomial degree 2)
+  # We use formula = y ~ poly(x, 2) to create the curve
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), color = "purple", se = FALSE) +   
     labs(title = "Relationship between YearsTea and Math Gain",
          x = "YearsTea",
          y = "Gain in Math Score") +
@@ -390,7 +432,16 @@ ggplot(data, aes(x = yearstea, y = mathgain, color = tea_level)) +
 # MathGain ~ MathPrep
 ggplot(data, aes(x = mathprep, y = mathgain, color = classid)) +
   geom_point(alpha = 0.5) + 
-  geom_smooth(method = "lm", col = "red") +       
+  # Existing Linear Line (Linear Regression)
+  geom_smooth(method = "lm", color = "red", se = FALSE) + 
+  
+  # Add Smoothing Line (LOESS or GAM)
+  # method = "loess" is great for identifying local patterns
+  geom_smooth(method = "loess", color = "forestgreen", se = FALSE) + 
+  
+  # Add Quadratic Line (Polynomial degree 2)
+  # We use formula = y ~ poly(x, 2) to create the curve
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), color = "purple", se = FALSE) +     
   labs(title = "Relationship between MathPrep and Math Gain",
        x = "MathPrep",
        y = "Gain in Math Score") +
